@@ -4,7 +4,7 @@ import sys
 from threading import local
 from gevent import monkey
 
-__all__ = ['patch', 'thread_use_gevent', 'thread_use_original',
+__all__ = ['patch', 'patch_all', 'thread_use_gevent', 'thread_use_original',
            'default_use', 'GEVENT', 'ORIGINAL']
 
 GEVENT = 0
@@ -65,12 +65,14 @@ class _mock_caller():
             return self.gevent_obj(*args, **kwargs)
         return self.original_obj(*args, **kwargs)
 
+
 def _patch_no_check(module):
     for attrname in module.__all__:
         obj = getattr(module, attrname)
         if hasattr(obj, '__module__') and obj.__module__.startswith('gevent.'):
             original_obj = monkey.get_original(module.__name__, attrname)
             setattr(module, attrname, _mock_caller(obj, original_obj))
+
 
 def patch(modules):
     if not isinstance(modules, list):
@@ -99,11 +101,12 @@ import os
 gevent_patch_control.patch([os, 'socket'])
 '''
 
-#todo: add selective args
+# todo: add selective args
 def patch_all():
     for module in sys.modules:
         if monkey.is_module_patched(module.__name__):
             _patch_no_check(module)
+
 
 patch.__doc__ = '''patch_all()
 
