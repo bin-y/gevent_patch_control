@@ -19,7 +19,8 @@ def default_use(use=None):
     _default_use = use
 
 
-default_use.__doc__ = '''default_use(use=None)
+default_use.__doc__ = '''\
+default_use(use=None)
 
 set/get default behavor on the thread never call thread_use_gevent / thread_use_original
 
@@ -34,7 +35,8 @@ def thread_use_gevent():
     _tls.use = GEVENT
 
 
-thread_use_gevent.__doc__ = '''thread_use_gevent()
+thread_use_gevent.__doc__ = '''\
+thread_use_gevent()
 
 enable gevent patch on current thread
 '''
@@ -44,24 +46,25 @@ def thread_use_original():
     _tls.use = ORIGINAL
 
 
-thread_use_gevent.__doc__ = '''thread_use_original()
+thread_use_gevent.__doc__ = '''\
+thread_use_original()
 
 disable gevent patch on current thread
 '''
 
 
-class _mock_caller():
+class _proxy():
     def __init__(self, gevent_obj, original_obj):
         self.gevent_obj = gevent_obj
         self.original_obj = original_obj
 
     def __call__(self, *args, **kwargs):
         if hasattr(_tls, 'use'):
-            use_gevent = _tls.use == GEVENT
+            use = _tls.use
         else:
-            use_gevent = _default_use == GEVENT
+            use = _default_use
 
-        if use_gevent:
+        if use == GEVENT:
             return self.gevent_obj(*args, **kwargs)
         return self.original_obj(*args, **kwargs)
 
@@ -71,7 +74,7 @@ def _patch_no_check(module):
         obj = getattr(module, attrname)
         if hasattr(obj, '__module__') and obj.__module__.startswith('gevent.'):
             original_obj = monkey.get_original(module.__name__, attrname)
-            setattr(module, attrname, _mock_caller(obj, original_obj))
+            setattr(module, attrname, _proxy(obj, original_obj))
 
 
 def patch(modules):
@@ -84,7 +87,8 @@ def patch(modules):
         _patch_no_check(module)
 
 
-patch.__doc__ = '''patch(module(s))
+patch.__doc__ = '''\
+patch(module(s))
 
 patch module to control gevent patch
 
@@ -108,7 +112,8 @@ def patch_all():
             _patch_no_check(module)
 
 
-patch.__doc__ = '''patch_all()
+patch.__doc__ = '''\
+patch_all()
 
 patch all modules already patched by gevent
 '''
