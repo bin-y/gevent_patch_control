@@ -70,7 +70,11 @@ class _proxy():
 
 
 def _patch_no_check(module):
-    for attrname in module.__all__:
+    if hasattr(module, '__all__'):
+        attributes = module.__all__
+    else
+        attributes = dir(module)
+    for attrname in attributes:
         obj = getattr(module, attrname)
         if hasattr(obj, '__module__') and obj.__module__.startswith('gevent.'):
             original_obj = monkey.get_original(module.__name__, attrname)
